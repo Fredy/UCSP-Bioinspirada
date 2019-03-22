@@ -1,4 +1,4 @@
-from random import (random, choices)
+from random import (random, choices, shuffle)
 from math import log2
 from collections import (Counter, OrderedDict)
 from string import ascii_lowercase
@@ -72,6 +72,20 @@ def gen_random_text_2(file_name, weights, size):
         file.write(''.join(chars))
 
 
+# 5
+
+def shuffle_text(file_name):
+    '''Shuffle a file and save it in another file'''
+    with open(file_name) as file:
+        content = file.read()
+
+    chars = list(content)
+    shuffle(chars)
+
+    with open('shuffled_' + file_name, 'w') as file:
+        file.write(''.join(chars))
+
+
 if __name__ == '__main__':
     text_entropy(['text_1.txt', 'text_2.txt', 'text_3.txt'])
 
@@ -88,3 +102,9 @@ if __name__ == '__main__':
 
     print('\nRandoms:')
     text_entropy(['random_no_w.txt', 'random_w.txt'])
+
+    shuffle_text('text_1.txt')
+
+    print('\nShuffled:')
+    text_entropy(['text_1.txt', 'shuffled_text_1.txt'])
+
