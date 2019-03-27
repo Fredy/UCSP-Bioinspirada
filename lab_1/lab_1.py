@@ -1,69 +1,110 @@
-from random import random
+from random import (random, choices, shuffle)
 from math import log2
+from collections import (Counter, OrderedDict)
+from string import ascii_lowercase
+
+ALPHABET = ascii_lowercase + 'ñáéíóú '
+
 
 def gen_random_list(n):
     ran = [random() for i in range(n)]
 
-    return list(map(lambda x: x/ sum(ran), ran))
+    return list(map(lambda x: x / sum(ran), ran))
 
 # 1. Hartley, Shannon
+
+
 def hartley(probs):
     return log2(len(probs))
+
 
 def shannon(probs):
     count = 0
     for i in probs:
+        if i == 0:
+            continue
         count += i * log2(i)
     return - count
 
-# 2.
+# 2. 3.
+
 
 def frequency(file_name):
     with open(file_name) as file:
-        counts = {}
-        for line in file:
-            for char in line.lower():
-                if not (char.isalpha() or char == ' '):
-                    continue
-                if char in counts:
-                    counts[char] += 1
-                else:
-                    counts[char] = 1
+        counts = Counter(char for line in file
+                         for char in line.lower()
+                         if char in ALPHABET
+                         )
 
-    
-    csum = 0    
-    for key in counts:
-        csum += counts[key]
-     
-    letters = []
-    for key, val in sorted(counts.items()):
-        letters.append((key,val / csum))
+    csum = sum(counts.values())
+
+    letters = {i: 0 for i in ALPHABET}
+    for key, val in counts.items():
+        letters[key] = val / csum
 
     return letters
+
 
 def text_entropy(file_name_list):
     for name in file_name_list:
         freq = frequency(name)
-        freq_val = [v for _, v in freq]
+        freq_val = freq.values()
         print('----{}----'.format(name))
-        print('Hartley:', round(hartley(freq_val),4))
-        print('Shannon:', round(shannon(freq_val),4))
+        print('Hartley:', round(hartley(freq_val), 4))
+        print('Shannon:', round(shannon(freq_val), 4))
 
+# 4.
+
+
+def gen_random_text_1(file_name, size):
+    '''Completely random text generator'''
+    chars = choices(ALPHABET, k=size)
+
+    with open(file_name, 'w') as file:
+        file.write(''.join(chars))
+
+
+def gen_random_text_2(file_name, weights, size):
+    '''Random text generator using weights'''
+    chars = choices(ALPHABET, weights=weights, k=size)
+
+    with open(file_name, 'w') as file:
+        file.write(''.join(chars))
+
+
+# 5
+
+def shuffle_text(file_name):
+    '''Shuffle a file and save it in another file'''
+    with open(file_name) as file:
+        content = file.read()
+
+    chars = list(content)
+    shuffle(chars)
+
+    with open('shuffled_' + file_name, 'w') as file:
+        file.write(''.join(chars))
 
 
 if __name__ == '__main__':
     text_entropy(['text_1.txt', 'text_2.txt', 'text_3.txt'])
-    # ----text_1.txt----
-    # Hartley: 4.9542
-    # Shannon: 4.0948
-    # ----text_2.txt----
-    # Hartley: 5.0444
-    # Shannon: 4.1074
-    # ----text_3.txt----
-    # Hartley: 5.0
-    # Shannon: 4.123 
-    # + Los textos tienen la misma entropía de Hartley, porque
-    #   el total  de elementos alfabeto usado es el mismo:
-    #   letras en español + letras con acentos + espacio (27 + 5 + 1)
-    # + La entropía de Shannon es similar en todos porque todos los textos están
-    #   escritos en español
+
+    print('\nLipograms:')
+    text_entropy(['lipogram_1.txt', 'lipogram_2.txt'])
+
+    gen_random_text_1('random_no_w.txt', 4000)
+
+    freq = frequency('text_2.txt')
+
+    weights = [freq[i] for i in ALPHABET]
+
+    gen_random_text_2('random_w.txt', weights, 4000)
+
+    print('\nRandoms:')
+    text_entropy(['random_no_w.txt', 'random_w.txt'])
+
+    shuffle_text('text_1.txt')
+
+    print('\nShuffled:')
+    text_entropy(['text_1.txt', 'shuffled_text_1.txt'])
+
