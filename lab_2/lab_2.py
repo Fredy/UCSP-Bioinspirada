@@ -5,10 +5,10 @@ from random import choice
 
 
 def evo_strategy(opt_f, mutate, size, limits, max_gen, sigma, k, c):
+    iterations = []
     x = random.uniform(limits[0], limits[1], size)
     fx = opt_f(x)
     p = 0
-    print('- :', x, '=>', fx)
     for i in range(max_gen):
         new_x = mutate(x, 0, sigma, limits)
         new_fx = opt_f(new_x)
@@ -17,7 +17,8 @@ def evo_strategy(opt_f, mutate, size, limits, max_gen, sigma, k, c):
             fx = new_fx
             x = new_x
             p += 1
-            print(i, ':', x, '=>', fx)
+
+        iterations.append(dict(s=x, y=fx))
 
         if i % k == 0:
             tmp = p/k
@@ -25,6 +26,8 @@ def evo_strategy(opt_f, mutate, size, limits, max_gen, sigma, k, c):
                 sigma /= c
             elif tmp > 0.2:
                 sigma *= c
+
+    return iterations
 
 
 def mutate(x, mean, stdev, limits):
@@ -35,11 +38,12 @@ def mutate(x, mean, stdev, limits):
             return new_x
 
 # 2
-#  (μ + 1)-EE, combinación lineal convexa
 
 
 def evo_strategy_plus(opt_f, mutate, mu, lambd, size, limits,
                       max_gen, sigma, k, c):
+    iterations = []
+
     x = [
         random.uniform(limits[0], limits[1], size)
         for i in range(mu)
@@ -47,9 +51,6 @@ def evo_strategy_plus(opt_f, mutate, mu, lambd, size, limits,
     x = [dict(y=opt_f(i), s=i) for i in x]
 
     for i in range(max_gen):
-        print(i, '---------', sigma)
-        for pop in x:
-            print('   ', pop['s'], '->', pop['y'])
         offspring = gen_offspring(
             parents=x,
             size=lambd,
@@ -63,8 +64,15 @@ def evo_strategy_plus(opt_f, mutate, mu, lambd, size, limits,
         x.extend(offspring)
         x = selection(x, mu)
 
+        iterations.append(x.copy())
+
+    return iterations
+
+
 def evo_strategy_comma(opt_f, mutate, mu, lambd, size, limits,
-                      max_gen, sigma, k, c):
+                       max_gen, sigma, k, c):
+    iterations = []
+
     x = [
         random.uniform(limits[0], limits[1], size)
         for i in range(mu)
@@ -72,9 +80,6 @@ def evo_strategy_comma(opt_f, mutate, mu, lambd, size, limits,
     x = [dict(y=opt_f(i), s=i) for i in x]
 
     for i in range(max_gen):
-        print(i, '---------', sigma)
-        for pop in x:
-            print('   ', pop['s'], '->', pop['y'])
         offspring = gen_offspring(
             parents=x,
             size=lambd,
@@ -87,6 +92,11 @@ def evo_strategy_comma(opt_f, mutate, mu, lambd, size, limits,
 
         x = selection(offspring, mu)
 
+        iterations.append(x.copy())
+
+    return iterations
+
+
 def gen_offspring(parents, size, opt_f, mutate, mean, stdev, limits):
     offspring = []
     for i in range(size):
@@ -96,6 +106,7 @@ def gen_offspring(parents, size, opt_f, mutate, mean, stdev, limits):
         offspring.append(dict(y=fx, s=child))
 
     return offspring
+
 
 def selection(population, size):
     population.sort(key=lambda x: x['y'], reverse=True)
@@ -109,8 +120,18 @@ def func_1(x):
     return 100 * (x[0] ** 2 - x[1] ** 2) + (1 - x[0]) ** 2
 
 
+def print_res(itereations):
+    for idx, it in enumerate(itereations):
+        print(idx, '----------')
+        if isinstance(it, list):
+            for x in it:
+                print('   ', x['s'], '->', x['y'])
+        else:
+            print('   ', it['s'], '->', it['y'])
+
+
 if __name__ == '__main__':
-    # evo_strategy(
+    # res = evo_strategy(
     #     opt_f=func_1,
     #     mutate=mutate,
     #     size=2,
@@ -121,7 +142,21 @@ if __name__ == '__main__':
     #     c=0.817
     # )
 
-    evo_strategy_comma(
+    # res = evo_strategy_plus(
+    #     mu=5,
+    #     lambd=10,
+    #     opt_f=func_1,
+    #     mutate=mutate,
+    #     size=2,
+    #     limits=(-2.048, 2.048),
+    #     max_gen=40,
+    #     sigma=3,
+    #     k=10,
+    #     c=0.817
+
+    # )
+
+    res = evo_strategy_comma(
         mu=5,
         lambd=10,
         opt_f=func_1,
@@ -132,5 +167,7 @@ if __name__ == '__main__':
         sigma=3,
         k=10,
         c=0.817
- 
+
     )
+
+    print_res(res)
