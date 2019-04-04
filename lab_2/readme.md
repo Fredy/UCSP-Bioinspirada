@@ -25,7 +25,7 @@ Para la comparación se realizaron 40 iteraciones de cada algoritmo. Esto se rea
 
 En el siguiente gráfico se pueden observar las curvas de mejores elementos de cada uno de los algoritmos implementados.
 
-![Curva de mejores elementos]()
+![Curva de mejores elementos](https://github.com/Fredy/UCSP-Bioinspirada/blob/master/lab_2/comparison.svg)
 
 Se puede observar que tanto `(1 + 1)-EE` y `(μ + λ)−EE` van mejorando en cada generación. En el primero ocurre debido a que siempre se mantiene el elemento con el mejor fitness. En el seguno, esto ocurre porque siempre se mantienen los mejores elementos entre los padres e hijos. 
 
