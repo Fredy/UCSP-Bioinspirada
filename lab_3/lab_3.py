@@ -1,167 +1,85 @@
 """Lab 3: Genetic Algorithms"""
+from random import random, randrange, sample, choice
+from sys import argv
+from copy import deepcopy
+from math import sin, sqrt
 import numpy as np
-from math import sin, sqrt, log2
-from random import choices, randrange, random
-
-#pupulation = [ value, ... ]
-# fitness = [f0, ..., fn]
-
-# Representation
+from fitness import calc_fitnesses, linear_normalization
+from operators import crossovers, mutation
+from selection import selections, elitism
+from representation import Cromosome
+from charts import draw_chart
 
 
-class Cromosome:
-    """Represents each of the population individuals"""
+def canonical(optfunc, population_len, limits, precisions, epochs,
+              crossover_type, selection_type, pc, pm, use_elitism,
+              use_normalization, minv=None, maxv=None, save_bests=False, save_pops=False):
+    if use_normalization and (minv is None or maxv is None):
+        raise TypeError(
+            'If use_normalization is true, minv and maxv must be specified'
+        )
 
-    def __init__(self, limits, precisions):
-        if len(limits) != len(precisions):
-            raise ValueError(
-                'len(limits) must equals len(precisions): {} != {}'.format(
-                    len(limits), len(precisions)
-                )
-            )
+    bests = [] if save_bests else None
+    pops = [] if save_pops else None
 
-        self.bin_real_repr = [
-            BinRealRepr(lim[0], lim[1], prec)
-            for lim, prec in zip(limits, precisions)
-        ]
-        self.bin_value = []
-        self._acc_limits = [0]
+    crossover = crossovers[crossover_type]
+    selection = selections[selection_type]
 
-        for idx, rep in enumerate(self.bin_real_repr):
-            self.bin_value.extend(rep.randomize())
-            last = self._acc_limits[-1]
-            self._acc_limits.append(last + rep.length)
+    population = np.array([Cromosome(limits, precisions)
+                           for i in range(population_len)])
+    fitnesses = calc_fitnesses(population, optfunc)
 
-    def get(self, index):
-        if index >= len(self.bin_real_repr):
-            raise IndexError('Max index is {}'.format(len(self.bin_real_repr) - 1))
+    if use_normalization:
+        normalized = linear_normalization(fitnesses, minv, maxv)
+        population = population[[i[0] for i in normalized]]
+        fitnesses = [i[1] for i in normalized]
 
-        start = self._acc_limits[index]
-        end = self._acc_limits[index + 1]
-        return self.bin_value[start:end]
+    if save_bests:
+        idx = np.argmax(fitnesses)
+        bests.append(population[idx].get_real_val())
+    if save_pops:
+        pops.append([c.get_real_val() for c in population])
 
-    
+    for i in range(epochs - 1):
+        new_pop = selection(population, fitnesses)
+        if use_elitism:
+            prev_best = elitism(population, fitnesses)
 
-class BinRealRepr:
-    """Binary to Real representation"""
+        operate(new_pop, crossover, pc, pm)
 
-    def __init__(self, left, right, precision):
-        self.left = left
-        self.right = right
-        self.precision = precision
-        self.length = round(log2(right - left) + precision * log2(10))
+        fitnesses = calc_fitnesses(new_pop, optfunc)
 
-    def randomize(self):
-        return choices([False, True], k=self.length)
+        if use_elitism:
+            idx = randrange(len(new_pop))
+            new_pop[idx] = deepcopy(prev_best[0])
+            fitnesses[idx] = prev_best[1]
 
-    def get_real_val(self, bin_value):
-        acc = 0
-        for i, v in enumerate(bin_value[::-1]):
-            acc += 2**i * int(v)
-        acc *= (self.right - self.left) / (2 ** self.length - 1)
-        return round(self.left + acc, self.precision)
-
-# Selection
-
-
-def roulette(population, fitnesses, offspring_len=None):
-    if offspring_len is None:
-        offspring_len = len(population)
-    return choices(population, weights=fitnesses, k=offspring_len)
-
-
-def stochastic(population, fitnesses, offspring_len=None):
-    if offspring_len is None:
-        offspring_len = len(population)
-
-    tmp = len(population) / sum(population)
-    values = [tmp * i for i in fitnesses]
-    int_part = [int(i) for i in values]
-    dec_part = [i - j for i, j in zip(values, int_part)]
-
-    res = []
-    for i, v in enumerate(int_part):
-        res.extend([population[i]] * v)
-
-    remm = offspring_len - len(res)
-    res.extend(roulette(population, dec_part, remm))
-
-    return res
-
-
-def tournament(population, fitnesses, offspring_len=None):
-    if offspring_len is None:
-        offspring_len = len(population)
-
-    zipped = list(zip(population, fitnesses))
-
-    res = []
-    for i in range(offspring_len):
-        tmp = choices(zipped, k=2)
-        res.append(tmp[0] if tmp[0] > tmp[1] else tmp[1])
-
-
-# Adjust
-
-def linear_normalization(fitnesses, minv, maxv):
-    """
-    :return: list of tuples (idx in population, new fitness)
-    """
-    enumerated = list(enumerate(fitnesses))
-    enumerated.sort(key=lambda x: x[1])
-
-    tmp = (maxv - minv) / (len(fitnesses) - 1)
-    return [
-        (v[0], minv + tmp * (idx - 1))
-        for idx, v in enumerate(enumerated, start=1)
-    ]
-
-# Operators
-
-
-def crossover1(gen1, gen2, length, point=None):
-    if point is None:
-        point = randrange(0, length)
-    return (
-        gen1[:point] + gen2[point:],
-        gen2[:point] + gen1[point:]
-    )
-
-
-def crossover2(gen1, gen2, length, point1=None, point2=None):
-    if point1 is None:
-        point1 = randrange(0, length)
-    if point2 is None:
-        point2 = randrange(0, length)
-
-    if point1 > point2:
-        point1, point2 = point2, point1
-
-    return (
-        gen1[:point1] + gen2[point1:point2] + gen1[point2:],
-        gen2[:point1] + gen1[point1:point2] + gen2[point2:]
-    )
-
-
-def crossover_uniform(gen1, gen2, length):
-    new_gen1 = []
-    new_gen2 = []
-    for i in range(length):
-        if random() >= 0.5:
-            new_gen1.append(gen2[i])
-            new_gen2.append(gen1[i])
+        if use_normalization:
+            normalized = linear_normalization(fitnesses, minv, maxv)
+            population = deepcopy(new_pop[[i[0] for i in normalized]])
+            fitnesses = [i[1] for i in normalized]
         else:
-            new_gen1.append(gen1[i])
-            new_gen2.append(gen2[i])
+            population = new_pop
+        
+        if save_bests:
+            idx = np.argmax(fitnesses)
+            bests.append(population[idx].get_real_val())
+        if save_pops:
+            pops.append([c.get_real_val() for c in population])
 
-    return (new_gen1, new_gen2)
+    return population, bests, pops
 
 
-def canonical(size, limits, optfunc):
-    population = np.random.uniform(limits[0], limits[1], size)
-    # TODO: decodificar
-
-    fx = optfunc(population)
+def operate(population, crossover, pc, pm):
+    length = len(population)
+    for i in range(length):
+        if random() < pc:
+            samp = sample(list(population), 2)
+            bin_reprs = [i.bin_value for i in samp]
+            crossover(bin_reprs[0], bin_reprs[1])
+        if random() < pm:
+            bin_rep = choice(population).bin_value
+            mutation(bin_rep)
 
 
 def optfunc(x):
@@ -171,3 +89,81 @@ def optfunc(x):
     tmp1 = sin(sqrt(xsqr))**2 - 0.5
     tmp2 = (1 + 0.001 * (xsqr)) ** 2
     return 0.5 - tmp1 / tmp2
+
+
+if __name__ == "__main__":
+    if len(argv) < 10:
+        print(
+            'Usage python lab_3.py population_length epochs experiments crossover selection pc pm use_elitism use_norm',
+            '- population_length: length of the population',
+            '- epochs: number of epochs',
+            '- experiments: number of experiments',
+            '- crossover: one of {}'.format(list(crossovers.keys())),
+            '- selection: one of {}'.format(list(selections.keys())),
+            '- pc: cross probability',
+            '- pm: mutation probaility',
+            '- use_elitism: true or false',
+            '- use_norm: true or false',
+            '- if use_norm is true: two extra params must be specified: vmin and vmax',
+            sep='\n'
+        )
+        exit()
+
+    population_len = int(argv[1])
+    epochs = int(argv[2])
+    experiments = int(argv[3])
+    crossover = argv[4]
+    selection = argv[5]
+    pc = float(argv[6])
+    pm = float(argv[7])
+    use_elitism = argv[8] == 'true'
+    use_norm = argv[9] == 'true'
+
+    if use_norm:
+        if len(argv) < 12:
+            print('If use_norm is true: two extra params must be specified: minv and maxv')
+            exit()
+        minv = float(argv[10])
+        maxv = float(argv[11])
+
+    bests_fitnesses = np.zeros(epochs)
+    population_fitnesses = np.zeros(epochs)
+    for i in range(experiments):
+        res, bests, pops = canonical(
+            optfunc=optfunc, population_len=population_len,
+            limits=((-100, 100), (-100, 100)),
+            precisions=(6, 6), epochs=epochs,
+            crossover_type=crossover,
+            selection_type=selection, pc=pc, pm=pc,
+            use_elitism=use_elitism, use_normalization=use_norm,
+            minv=minv, maxv=maxv,
+            save_bests=True,
+            save_pops=True
+        )
+
+        fitnesses = calc_fitnesses(bests, optfunc)
+        bests_fitnesses += fitnesses
+
+        population_f = []
+        for i in pops:
+            tmp = np.average(calc_fitnesses(i, optfunc))
+            population_f.append(tmp)
+
+        population_fitnesses += population_f
+
+        res_fit = calc_fitnesses(res, optfunc)
+        for r, f in  zip(res, res_fit):
+            print(r.get_real_val(), ' : ', f)
+        print('------')
+
+    bests_fitnesses /= experiments
+    population_fitnesses /= experiments
+
+    draw_chart(bests_fitnesses, population_fitnesses, '{} {} pc: {} pm: {} E: {} N: {}'.format(
+        selection, crossover, pc, pm, use_elitism, use_norm))
+
+    res_fitnesses = calc_fitnesses(res, optfunc)
+    best_idx = np.argmax(res_fitnesses)
+    print(res[best_idx].get_real_val(), '  -> ', res_fitnesses[best_idx])
+
+    print(bests_fitnesses)
