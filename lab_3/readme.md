@@ -1,6 +1,5 @@
 # Lab 3
 
-
 ## Setup
 
 Para ejecutar el código:
@@ -30,7 +29,7 @@ Para ejecutar el código:
 python lab_3.py 40 100 20 crossover1 roulette 0.65 0.008 true false
 ```
 
-![roulette](lab_3/imgs/roulette_crossover1_pc:_0.65_pm:_0.008_E:_True_N:_False.svg)
+![roulette](imgs/roulette_crossover1_pc:_0.65_pm:_0.008_E:_True_N:_False.svg)
 
 Fitness final promedio: `0.982869` 
 
@@ -40,7 +39,7 @@ Fitness final promedio: `0.982869`
 python lab_3.py 40 100 20 crossover1 stochastic 0.65 0.008 true false
 ```
 
-![stochastic](lab_3/imgs/stochastic_crossover1_pc:_0.65_pm:_0.008_E:_True_N:_False.svg)
+![stochastic](imgs/stochastic_crossover1_pc:_0.65_pm:_0.008_E:_True_N:_False.svg)
 
 Fitness final promedio: `0.980807` 
 
@@ -50,7 +49,7 @@ Fitness final promedio: `0.980807`
 python lab_3.py 40 100 20 crossover1 tournament 0.65 0.008 true false
 ```
 
-![tournament](lab_3/imgs/tournament_crossover1_pc:_0.65_pm:_0.008_E:_True_N:_False.svg)
+![tournament](imgs/tournament_crossover1_pc:_0.65_pm:_0.008_E:_True_N:_False.svg)
 
 Fitness final promedio: `0.977518` 
 
@@ -73,7 +72,7 @@ sultados que la selección por torneo.
 python lab_3.py 40 100 20 crossover1 stochastic 0.65 0.008 true false
 ```
 
-![crossover1](lab_3/imgs/stochastic_crossover1_pc:_0.65_pm:_0.008_E:_True_N:_False.svg)
+![crossover1](imgs/stochastic_crossover1_pc:_0.65_pm:_0.008_E:_True_N:_False.svg)
 
 Fitness final promedio: `0.980807` 
 
@@ -83,7 +82,7 @@ Fitness final promedio: `0.980807`
 python lab_3.py 40 100 20 crossover2 stochastic 0.65 0.008 true false
 ```
 
-![crossover2](lab_3/imgs/stochastic_crossover2_pc:_0.65_pm:_0.008_E:_True_N:_False.svg)
+![crossover2](imgs/stochastic_crossover2_pc:_0.65_pm:_0.008_E:_True_N:_False.svg)
 
 Fitness final promedio: `0.986452` 
 
@@ -93,7 +92,7 @@ Fitness final promedio: `0.986452`
 python lab_3.py 40 100 20 crossover_uniform stochastic 0.65 0.008 true false
 ```
 
-![crossover_uniform](lab_3/imgs/stochastic_crossover_uniform_pc:_0.65_pm:_0.008_E:_True_N:_False.svg)
+![crossover_uniform](imgs/stochastic_crossover_uniform_pc:_0.65_pm:_0.008_E:_True_N:_False.svg)
 
 Fitness final promedio: `0.989862`
 
@@ -114,7 +113,7 @@ Observando los gráficos, se observa que en promedio, usando cruce de dos puntos
 python lab_3.py 40 100 20 crossover2 stochastic 0.65 0.008 true false
 ```
 
-![65_08](lab_3/imgs/stochastic_crossover2_pc:_0.65_pm:_0.008_E:_True_N:_False.svg)
+![65_08](imgs/stochastic_crossover2_pc:_0.65_pm:_0.008_E:_True_N:_False.svg)
 
 Fitness final promedio: `0.986452` 
 
@@ -124,7 +123,7 @@ Fitness final promedio: `0.986452`
 python lab_3.py 40 100 20 crossover2 stochastic 0.85 0.008 true false
 ```
 
-![85_08](lab_3/imgs/stochastic_crossover2_pc:_0.85_pm:_0.008_E:_True_N:_False.svg)
+![85_08](imgs/stochastic_crossover2_pc:_0.85_pm:_0.008_E:_True_N:_False.svg)
 
 Fitness final promedio: `0.987345`
 
@@ -134,7 +133,7 @@ Fitness final promedio: `0.987345`
 python lab_3.py 40 100 20 crossover2 stochastic 0.55 0.008 true false
 ```
 
-![55_08](lab_3/imgs/stochastic_crossover2_pc:_0.55_pm:_0.008_E:_True_N:_False.svg)
+![55_08](imgs/stochastic_crossover2_pc:_0.55_pm:_0.008_E:_True_N:_False.svg)
 
 Fitness final promedio: `0.990857` 
 
@@ -144,7 +143,7 @@ Fitness final promedio: `0.990857`
 python lab_3.py 40 100 20 crossover2 stochastic 0.25 0.008 true false
 ```
 
-![25_08](lab_3/imgs/stochastic_crossover2_pc:_0.25_pm:_0.008_E:_True_N:_False.svg)
+![25_08](imgs/stochastic_crossover2_pc:_0.25_pm:_0.008_E:_True_N:_False.svg)
 
 Fitness final promedio: `0.97386` 
 
@@ -154,7 +153,7 @@ Fitness final promedio: `0.97386`
 python lab_3.py 40 100 20 crossover2 stochastic 0.65 0.004 true false
 ```
 
-![65_04](lab_3/imgs/stochastic_crossover2_pc:_0.65_pm:_0.004_E:_True_N:_False.svg)
+![65_04](imgs/stochastic_crossover2_pc:_0.65_pm:_0.004_E:_True_N:_False.svg)
 
 Fitness final promedio: `0.989474` 
 
@@ -164,7 +163,7 @@ Fitness final promedio: `0.989474`
 python lab_3.py 40 100 20 crossover2 stochastic 0.65 0.01 true false
 ```
 
-![65_1](lab_3/imgs/stochastic_crossover2_pc:_0.65_pm:_0.01_E:_True_N:_False.svg)
+![65_1](imgs/stochastic_crossover2_pc:_0.65_pm:_0.01_E:_True_N:_False.svg)
 
 Fitness final promedio: `0.98714` 
 
@@ -174,7 +173,7 @@ Fitness final promedio: `0.98714`
 python lab_3.py 40 100 20 crossover2 stochastic 0.65 0.02 true false
 ```
 
-![65_02](lab_3/imgs/stochastic_crossover2_pc:_0.65_pm:_0.02_E:_True_N:_False.svg)
+![65_02](imgs/stochastic_crossover2_pc:_0.65_pm:_0.02_E:_True_N:_False.svg)
 
 Fitness final promedio: `0.991799` 
 
@@ -185,7 +184,7 @@ Fitness final promedio: `0.991799`
 python lab_3.py 40 100 20 crossover2 stochastic 0.65 0.05 true false
 ```
 
-![65_05](lab_3/imgs/stochastic_crossover2_pc:_0.65_pm:_0.05_E:_True_N:_False.svg)
+![65_05](imgs/stochastic_crossover2_pc:_0.65_pm:_0.05_E:_True_N:_False.svg)
 
 Fitness final promedio: `0.981727` 
 
@@ -208,7 +207,7 @@ Se puede observar que tanto incrementar o dismunuir mucho las probabilidades de 
 python lab_3.py 40 100 20 crossover2 stochastic 0.65 0.008 false false
 ```
 
-![false_false](lab_3/imgs/stochastic_crossover2_pc:_0.65_pm:_0.008_E:_False_N:_False.svg)
+![false_false](imgs/stochastic_crossover2_pc:_0.65_pm:_0.008_E:_False_N:_False.svg)
 
 Fitness final promedio: `0.857016` 
 
@@ -218,7 +217,7 @@ Fitness final promedio: `0.857016`
 python lab_3.py 40 100 20 crossover2 stochastic 0.65 0.008 true false
 ```
 
-![true_false](lab_3/imgs/stochastic_crossover2_pc:_0.65_pm:_0.008_E:_True_N:_False.svg)
+![true_false](imgs/stochastic_crossover2_pc:_0.65_pm:_0.008_E:_True_N:_False.svg)
 
 Fitness final promedio: `0.986452` 
 
