@@ -221,6 +221,6 @@ python lab_3.py 40 100 20 crossover2 stochastic 0.65 0.008 true false
 
 Fitness final promedio: `0.986452` 
 
-# Normalización lineal [10, 60] y elitismo
+### Normalización lineal [10, 60] y elitismo
 
-# Normalización lineal [1, 200] y elitismo
+### Normalización lineal [1, 200] y elitismo
