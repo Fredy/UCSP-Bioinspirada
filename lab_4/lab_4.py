@@ -1,19 +1,20 @@
-"""Lab 3: Genetic Algorithms"""
+import numpy as np
 from random import random, randrange, sample, choice
+from math import sin, sqrt
 from sys import argv
 from copy import deepcopy
-from math import sin, sqrt
-import numpy as np
-from fitness import calc_fitnesses, linear_normalization
-from operators import crossovers, mutation
+
+from fitness import linear_normalization, calc_fitnesses
 from selection import selections, elitism
-from representation import Cromosome
 from charts import draw_chart
+from operators import mutations, crossovers
+from representation import Cromosome
 
 
-def canonical(optfunc, population_len, limits, precisions, epochs,
-              crossover, selection, mutation, pc, pm, use_elitism,
-              use_normalization, minv=None, maxv=None, save_bests=False, save_pops=False):
+def canonical(optfunc, population_len, limits, epochs,
+              crossover_type, selection_type, mutation_type,
+              pc, pm, use_elitism, use_normalization, minv=None, maxv=None,
+              save_bests=False, save_pops=False):
     if use_normalization and (minv is None or maxv is None):
         raise TypeError(
             'If use_normalization is true, minv and maxv must be specified'
@@ -22,7 +23,11 @@ def canonical(optfunc, population_len, limits, precisions, epochs,
     bests = [] if save_bests else None
     pops = [] if save_pops else None
 
-    population = np.array([Cromosome(limits, precisions)
+    crossover = crossovers[crossover_type]
+    selection = selections[selection_type]
+    mutation = mutations[mutation_type]
+
+    population = np.array([Cromosome(limits)
                            for i in range(population_len)])
     fitnesses = calc_fitnesses(population, optfunc)
 
@@ -33,16 +38,16 @@ def canonical(optfunc, population_len, limits, precisions, epochs,
 
     if save_bests:
         idx = np.argmax(fitnesses)
-        bests.append(population[idx].get_real_val())
+        bests.append(population[idx])
     if save_pops:
-        pops.append([c.get_real_val() for c in population])
+        pops.append(population)
 
     for i in range(epochs - 1):
         new_pop = selection(population, fitnesses)
         if use_elitism:
             prev_best = elitism(population, fitnesses)
 
-        operate(new_pop, crossover, mutation, pc, pm)
+        operate(new_pop, crossover, mutation, pc, pm, i, epochs, 1)
 
         fitnesses = calc_fitnesses(new_pop, optfunc)
 
@@ -57,45 +62,47 @@ def canonical(optfunc, population_len, limits, precisions, epochs,
             fitnesses = [i[1] for i in normalized]
         else:
             population = new_pop
-        
+
         if save_bests:
             idx = np.argmax(fitnesses)
-            bests.append(population[idx].get_real_val())
+            bests.append(population[idx])
         if save_pops:
-            pops.append([c.get_real_val() for c in population])
+            pops.append(population)
 
     return population, bests, pops
 
 
-def operate(population, crossover, mutation, pc, pm):
+def operate(population, crossover, mutation, pc, pm, epoch, max_epoch, beta):
     length = len(population)
     for i in range(length):
         if random() < pc:
-            samp = sample(list(population), 2)
-            bin_reprs = [i.bin_value for i in samp]
-            crossover(bin_reprs[0], bin_reprs[1])
+            samp = sample(population.tolist(), 2)
+            crossover(samp[0], samp[1])
         if random() < pm:
-            bin_rep = choice(population).bin_value
-            mutation(bin_rep)
+            tmp = choice(population)
+            mutation(tmp, epoch, max_epoch, beta)
 
 
-def optfunc(x):
+def optfunc(x, dimension):
     # −100 ≤ x1 ≤ 100
     # −100 ≤ x2 ≤ 100
-    xsqr = x[0] ** 2 + x[1] ** 2
-    tmp1 = sin(sqrt(xsqr))**2 - 0.5
-    tmp2 = (1 + 0.001 * (xsqr)) ** 2
-    return 0.5 - tmp1 / tmp2
+
+    sqr_sum = (x ** 2).sum()
+    numerator = sin(sqrt(sqr_sum)) ** 2 - 0.5
+    denominator = (1 + 0.0001 * sqr_sum) ** 2
+    return 0.5 - numerator/denominator
 
 
 if __name__ == "__main__":
-    if len(argv) < 10:
+    if len(argv) < 11:
         print(
             'Usage python lab_3.py population_length epochs experiments crossover selection pc pm use_elitism use_norm',
+            '- bencmark_func_dim: dimension of the benchmark function',
             '- population_length: length of the population',
             '- epochs: number of epochs',
             '- experiments: number of experiments',
             '- crossover: one of {}'.format(list(crossovers.keys())),
+            '- mutation: one of {}'.format(list(mutations.keys())),
             '- selection: one of {}'.format(list(selections.keys())),
             '- pc: cross probability',
             '- pm: mutation probaility',
@@ -106,68 +113,70 @@ if __name__ == "__main__":
         )
         exit()
 
-    population_len = int(argv[1])
-    epochs = int(argv[2])
-    experiments = int(argv[3])
-    crossover = argv[4]
-    selection = argv[5]
-    pc = float(argv[6])
-    pm = float(argv[7])
-    use_elitism = argv[8] == 'true'
-    use_norm = argv[9] == 'true'
+    benchmark_func_dim = int(argv[1])
+    population_len = int(argv[2])
+    epochs = int(argv[3])
+    experiments = int(argv[4])
+    crossover = argv[5]
+    mutation = argv[6]
+    selection = argv[7]
+    pc = float(argv[8])
+    pm = float(argv[9])
+    use_elitism = argv[10] == 'true'
+    use_norm = argv[11] == 'true'
 
     minv = None
     maxv = None
     if use_norm:
-        if len(argv) < 12:
-            print('If use_norm is true: two extra params must be specified: minv and maxv')
+        if len(argv) < 14:
+            print(
+                'If use_norm is true: two extra params must be specified: minv and maxv')
             exit()
-        minv = float(argv[10])
-        maxv = float(argv[11])
-    
-    crossover_func = crossovers[crossover]
-    selection_func = selections[selection]
+        minv = float(argv[12])
+        maxv = float(argv[13])
+
+    def _optfunc(x):
+        return optfunc(x, benchmark_func_dim)
 
     bests_fitnesses = np.zeros(epochs)
     population_fitnesses = np.zeros(epochs)
     for i in range(experiments):
         res, bests, pops = canonical(
-            optfunc=optfunc, population_len=population_len,
-            limits=((-100, 100), (-100, 100)),
-            precisions=(6, 6), epochs=epochs,
-            crossover=crossover_func,
-            selection=selection_func, 
-            mutation=mutation,
-            pc=pc, pm=pc,
+            optfunc=_optfunc,
+            population_len=population_len,
+            limits=((-100, 100),) * benchmark_func_dim,
+            epochs=epochs,
+            crossover_type=crossover,
+            mutation_type=mutation,
+            selection_type=selection,
+            pc=pc, pm=pm,
             use_elitism=use_elitism, use_normalization=use_norm,
             minv=minv, maxv=maxv,
             save_bests=True,
             save_pops=True
         )
 
-        fitnesses = calc_fitnesses(bests, optfunc)
+        fitnesses = calc_fitnesses(bests, _optfunc)
         bests_fitnesses += fitnesses
 
         population_f = []
         for i in pops:
-            tmp = np.average(calc_fitnesses(i, optfunc))
+            tmp = np.average(calc_fitnesses(i, _optfunc))
             population_f.append(tmp)
 
         population_fitnesses += population_f
 
-        res_fit = calc_fitnesses(res, optfunc)
-        for r, f in  zip(res, res_fit):
-            print(r.get_real_val(), ' : ', f)
-        print('------')
+        res_fit = calc_fitnesses(res, _optfunc)
+        # for r, f in zip(res, res_fit):
+        #     print(r.values, ' : ', f)
+        # print('------')
 
     bests_fitnesses /= experiments
     population_fitnesses /= experiments
 
-    draw_chart(bests_fitnesses, population_fitnesses, '{} {} pc: {} pm: {} E: {} N: {}'.format(
-        selection, crossover, pc, pm, use_elitism, use_norm))
+    draw_chart(bests_fitnesses, population_fitnesses, '{} {} pc: {} pm: {} E: {} N: {} D: {}'.format(
+        crossover, mutation, pc, pm, use_elitism, use_norm, benchmark_func_dim))
 
-    res_fitnesses = calc_fitnesses(res, optfunc)
+    res_fitnesses = calc_fitnesses(res, _optfunc)
     best_idx = np.argmax(res_fitnesses)
-    print(res[best_idx].get_real_val(), '  -> ', res_fitnesses[best_idx])
-
-    print(bests_fitnesses)
+    print(res[best_idx].values, '  -> ', res_fitnesses[best_idx])
