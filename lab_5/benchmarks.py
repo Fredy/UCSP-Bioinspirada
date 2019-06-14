@@ -1,12 +1,14 @@
 # Benchmarks
 from math import sin, sqrt
+import operator
 
 
 class Benchmark:
-    def __init__(self, func, min_, max_):
+    def __init__(self, func, min_, max_, optim_oper):
         self.func = func
         self.min_domain = min_
         self.max_domain = max_
+        self.optim_oper = optim_oper
 
     def __call__(self, x):
         return self.func(x)
@@ -34,11 +36,18 @@ def function_3(x):
     for i in x:
         square_res += i**2
 
-    sin_res = sin(square_res)
+    sin_res = sin(sqrt(square_res))
 
-    return 0.5 - (sin_res**2 - 0.5) / (1.0 + 0.001 * square_res) ** 2
+    return 0.5 - (sin_res**2 - 0.5) / ((1.0 + 0.001 * square_res) ** 2)
 
 
-schwefel = Benchmark(schwefel, -500, 500)
-function_3 = Benchmark(function_3, -100, 100)
+def aeckley(x):
+    # Domain:
+    # −32.768 ≤ x ≤ 32.768
+    #  aeckley(x°) = 1, x° = {0,0,...,0)
+    pass
+
+
+schwefel = Benchmark(schwefel, -500, 500, operator.lt)
+function_3 = Benchmark(function_3, -100, 100, operator.gt)
 # TODO: make decorator and replace the above two lines

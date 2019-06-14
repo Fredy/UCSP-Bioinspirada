@@ -14,7 +14,7 @@ ABANDON_PROB = 0.25
 DIMENSIONS = 2
 TRIALS = 3000
 POPULATION_SIZE = 50
-ITERATIONS = 50
+ITERATIONS = 500
 
 
 def levy_flight(lambda_=LAMBDA):
@@ -71,7 +71,7 @@ class Individual:
         return deepcopy(self)
 
 
-def cuckoo_search(func, optim_oper, trials=TRIALS):
+def cuckoo_search(func, trials=TRIALS):
     # CSV output
     os.makedirs('results', exist_ok=True)
     out_file_name = os.path.join('results', 'results_cs.csv')
@@ -105,7 +105,7 @@ def cuckoo_search(func, optim_oper, trials=TRIALS):
                 while rnd is ind:
                     rnd = np.random.choice(individuals)
 
-                if optim_oper(ind.fitness, rnd.fitness):
+                if func.optim_oper(ind.fitness, rnd.fitness):
                     rnd.position = ind.position.copy()
                     rnd.fitness = ind.fitness
 
@@ -119,7 +119,7 @@ def cuckoo_search(func, optim_oper, trials=TRIALS):
 
             individuals.sort(key=lambda x: x.fitness)
 
-            if optim_oper(individuals[0].fitness, best.fitness):
+            if func.optim_oper(individuals[0].fitness, best.fitness):
                 best = individuals[0].copy()
 
             sys.stdout.write(

@@ -48,7 +48,7 @@ class Individual:
             elif self.velocity[i] < vmin:
                 self.velocity[i] = vmin
 
-    def update_position(self, optim_oper):
+    def update_position(self):
         self.position += self.velocity
 
         # Correct bound violations
@@ -61,7 +61,7 @@ class Individual:
         new_fitness = self._func(self.position)
 
         # Updates personal best
-        if optim_oper(new_fitness, self.fitness):
+        if self._func.optim_oper(new_fitness, self.fitness):
             self.fitness = new_fitness
             self.personal_best = self.position
 
@@ -69,7 +69,7 @@ class Individual:
         return deepcopy(self)
 
 
-def particle_swarm_opt(func, optim_oper, trials=TRIALS):
+def particle_swarm_opt(func, trials=TRIALS):
     # CSV output
     os.makedirs('results', exist_ok=True)
     out_file_name = os.path.join('results', 'results_pso.csv')
@@ -94,12 +94,12 @@ def particle_swarm_opt(func, optim_oper, trials=TRIALS):
             for ind in individuals:
                 # Update velocities and positions.
                 ind.update_velocity(best.position)
-                ind.update_position(optim_oper)
+                ind.update_position()
 
             # Update best global
             individuals.sort(key=lambda x: x.fitness)
 
-            if optim_oper(individuals[0].fitness, best.fitness):
+            if func.optim_oper(individuals[0].fitness, best.fitness):
                 best = individuals[0].copy()
 
             sys.stdout.write(
