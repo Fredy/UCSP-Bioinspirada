@@ -49,3 +49,8 @@ En cada iteración se usa la siguiente fórmula para modificar la velocidad _v_ 
 ![equación](https://latex.codecogs.com/svg.latex?v_i^{t&plus;1}%3Dv_i^t%20&plus;\phi_1U_1^t(\text{pb}_i^t-p_i^t)&plus;\phi_2U_2^t(\text{gb}_i^t-p_i^t))
 
 Donde el primer termino representa a la incercia (velocidad actual), el segúndo termino es la influencia personal y el tercer término es la influencia global. El primero permite que la partícula se mueva en la misma dirección con la misma velocidad; el segundo, hace que la partícula tienda a regresar a una posición previa, mejor que la actual; y el tercero, permite a la partícula seguir la mejor dirección encontrada en la población. Por otro lado, el primer término permite la explotación y el seguno y tercer termino permiten la exploración. Ambos _ϕ_ son constantes, _U_ son números aleatorios en el rango _[0,1[_, _pb_ representa la mejor posición personal y _gb_ la mejor posición global, _p_ y _v_ son la posición y velocidad respectivamente.  
+
+### Modelamiento
+
+* Se usaron las funciones de benchmark como las funciones objetivo de este algoritmo.
+* Cada una de las posiciones de las partículas representa una solución. Tanto la posición como la velocidad son inicializadas con valores aleatorios.
