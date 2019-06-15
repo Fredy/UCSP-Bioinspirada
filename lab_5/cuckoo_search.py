@@ -11,10 +11,14 @@ LAMBDA = 1.5
 STEP_SIZE = 0.01
 ABANDON_PROB = 0.25
 
-DIMENSIONS = 2
-TRIALS = 3000
 POPULATION_SIZE = 50
-ITERATIONS = 500
+DIMENSIONS = 2
+TRIALS = 20
+ITERATIONS = 50
+
+
+
+
 
 
 def levy_flight(lambda_=LAMBDA):
@@ -71,17 +75,17 @@ class Individual:
         return deepcopy(self)
 
 
-def cuckoo_search(func, trials=TRIALS):
+def cuckoo_search(func, trials=TRIALS, out_file='results_cs.csv', verbose=True):
     # CSV output
     os.makedirs('results', exist_ok=True)
-    out_file_name = os.path.join('results', 'results_cs.csv')
+    out_file_name = os.path.join('results', out_file)
 
     results = open(out_file_name, 'w+')
     results_writer = csv.writer(results, lineterminator="\n")
 
     for trial in range(trials):
         # Just for test puposes
-        np.random.seed(trial)
+        # np.random.seed(trial)
 
         # Fitness list
         fitnesses = []
@@ -101,7 +105,7 @@ def cuckoo_search(func, trials=TRIALS):
 
                 # Randomly choose one individual
                 rnd = np.random.choice(individuals)
-                # Choosea individual that is diferent that actual
+                # Choose a individual that is diferent that actual
                 while rnd is ind:
                     rnd = np.random.choice(individuals)
 
@@ -122,10 +126,11 @@ def cuckoo_search(func, trials=TRIALS):
             if func.optim_oper(individuals[0].fitness, best.fitness):
                 best = individuals[0].copy()
 
-            sys.stdout.write(
-                f'\rTrial: {trial:4}, Iteration: {iteration:4}, '
-                f'Best Fitness: {best.fitness:.4f}'
-            )
+            if verbose:
+                sys.stdout.write(
+                    f'\rTrial: {trial:4}, Iteration: {iteration:4}, '
+                    f'Best Fitness: {best.fitness:.4f}'
+                )
             # for i in individuals:
             #     # print(f'{i.fitness:.4}', end=', ')
             #     print(i.position)
