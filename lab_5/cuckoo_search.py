@@ -7,18 +7,14 @@ from math import gamma, pi, sin
 import numpy as np
 
 
-LAMBDA = 1.5
-STEP_SIZE = 0.01
+LAMBDA = 2
+STEP_SIZE = 0.5
 ABANDON_PROB = 0.25
 
 POPULATION_SIZE = 50
 DIMENSIONS = 2
 TRIALS = 20
 ITERATIONS = 50
-
-
-
-
 
 
 def levy_flight(lambda_=LAMBDA):
@@ -91,7 +87,7 @@ def cuckoo_search(func, trials=TRIALS, out_file='results_cs.csv', verbose=True):
         fitnesses = []
         # Initial population
         individuals = [Individual(func) for i in range(POPULATION_SIZE)]
-        individuals.sort(key=lambda x: x.fitness)
+        individuals.sort(key=lambda x: x.fitness, reverse=func.isMax)
 
         # Initial best
         best = individuals[0].copy()
@@ -105,7 +101,7 @@ def cuckoo_search(func, trials=TRIALS, out_file='results_cs.csv', verbose=True):
 
                 # Randomly choose one individual
                 rnd = np.random.choice(individuals)
-                # Choose a individual that is diferent that actual
+                # Choose a individual that is diferent than actual
                 while rnd is ind:
                     rnd = np.random.choice(individuals)
 
@@ -113,7 +109,7 @@ def cuckoo_search(func, trials=TRIALS, out_file='results_cs.csv', verbose=True):
                     rnd.position = ind.position.copy()
                     rnd.fitness = ind.fitness
 
-            individuals.sort(key=lambda x: x.fitness)
+            individuals.sort(key=lambda x: x.fitness, reverse=func.isMax)
 
             # Abandon solutions, keep the best
             for i in range(1, POPULATION_SIZE):
@@ -121,7 +117,7 @@ def cuckoo_search(func, trials=TRIALS, out_file='results_cs.csv', verbose=True):
                 if r < ABANDON_PROB:
                     individuals[i].abandon()
 
-            individuals.sort(key=lambda x: x.fitness)
+            individuals.sort(key=lambda x: x.fitness, reverse=func.isMax)
 
             if func.optim_oper(individuals[0].fitness, best.fitness):
                 best = individuals[0].copy()
@@ -139,3 +135,5 @@ def cuckoo_search(func, trials=TRIALS, out_file='results_cs.csv', verbose=True):
             fitnesses.append(best.fitness)
 
         results_writer.writerow(fitnesses)
+
+    results.close()

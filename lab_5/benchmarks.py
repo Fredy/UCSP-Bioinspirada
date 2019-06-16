@@ -9,6 +9,7 @@ class Benchmark:
         self.min_domain = min_
         self.max_domain = max_
         self.optim_oper = optim_oper
+        self.isMax = optim_oper is operator.gt
 
     def __call__(self, x):
         return self.func(x)
