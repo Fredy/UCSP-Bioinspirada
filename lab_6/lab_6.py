@@ -2,6 +2,7 @@ import sys
 import itertools
 import numpy as np
 from collections import defaultdict
+import matplotlib.pyplot as plt
 
 ALPHA = 0.5  # Learning rate
 GAMMA = 0.5  # Discount Factor
@@ -10,7 +11,7 @@ ACTIONS = 4  # up, down, left, right
 MAX_ITERATIONS = 1000  # Max iterations
 
 GRID_START = (0, 0)
-GRID_END = (100, 100)
+GRID_END = (10, 10)
 R_START, C_START = GRID_START
 R_END, C_END = GRID_END
 
@@ -98,6 +99,7 @@ def get_max_action(actions):
 
     return np.random.choice(maxs)
 
+import pprint
 
 def q_learning():
     q = defaultdict(lambda: np.ones(ACTIONS) / ACTIONS)
@@ -105,6 +107,11 @@ def q_learning():
     position = Position(*INITIAL_POS)
 
     for t in itertools.count():
+
+        xs = []
+        ys = []
+        plt.axis([0, 10, 0, 10])
+        plt.plot(xs, ys)
         done = False
         for i in range(MAX_ITERATIONS):
             state = position.get_tuple()
@@ -117,21 +124,34 @@ def q_learning():
             tmp = reward + GAMMA * q[next_state].max()
             tmp = tmp - q[state][action]
             q[state][action] += ALPHA * tmp
-            
-            sys.stdout.write(f'\rT: {t} - {i}/{MAX_ITERATIONS}: Position: {next_state}')
-            sys.stdout.flush()
 
+            xs.append(next_state[1])
+            ys.append(next_state[0])
+            plt.gca().lines[0].set_xdata(xs)
+            plt.gca().lines[0].set_ydata(ys)
+            # plt.gca().relim()
+            # plt.gca().autoscale_view()
+            plt.pause(0.00001)
+            # sys.stdout.write(f'\rT: {t} - {i}/{MAX_ITERATIONS}: Position: {next_state}')
+            # sys.stdout.flush()
 
             if reward == 1:
                 done = True
                 break
 
+        plt.gca().clear()
         if done:
-            break
+            # break
+            print('DONE')
+            done = False
+            pprint.pprint(q)
+            position = Position(*INITIAL_POS)
         else:
             position = Position(*INITIAL_POS)
 
+    plt.show()
     return q
+
 
 if __name__ == "__main__":
     q = q_learning()
