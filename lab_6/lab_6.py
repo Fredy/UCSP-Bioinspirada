@@ -1,158 +1,43 @@
-import sys
-import itertools
 import numpy as np
-from collections import defaultdict
-import matplotlib.pyplot as plt
-
-ALPHA = 0.5  # Learning rate
-GAMMA = 0.5  # Discount Factor
-
-ACTIONS = 4  # up, down, left, right
-MAX_ITERATIONS = 1000  # Max iterations
-
-GRID_START = (0, 0)
-GRID_END = (10, 10)
-R_START, C_START = GRID_START
-R_END, C_END = GRID_END
-
-INITIAL_POS = (R_END//2, C_END//2)
-REWARD_POS = GRID_END
+import q_learning as ql
+from multiprocessing import Pool
+import itertools
 
 
-class Position:
-    def __init__(self, r, c):
-        self.r = r
-        self.c = c
+def test_combinations():
+    """Test combinations of α and γ"""
+    learning_rate = np.arange(0, 1.1, 0.1)
+    dis_factor = np.arange(0, 1.1, 0.1)
 
-    def up(self):
-        if self.r == R_START:
-            self.r = R_END
-        else:
-            self.r -= 1
+    for lr in learning_rate:
+        for df in dis_factor:
+            ql.ALPHA = lr
+            ql.GAMMA = df
+            with Pool() as pool:
+                res = pool.map(ql.q_learning, itertools.repeat(None, 20))
+            avg_iterations = np.mean([i[1] for i in res])
 
-    def down(self):
-        if self.r == R_END:
-            self.r = R_START
-        else:
-            self.r += 1
-
-    def left(self):
-        if self.c == C_START:
-            self.c = C_END
-        else:
-            self.c -= 1
-
-    def right(self):
-        if self.c == C_END:
-            self.c = C_START
-        else:
-            self.c += 1
-
-    def __eq__(self, other):
-        if isinstance(other, tuple):
-            return (self.r, self.c) == other
-        elif isinstance(other, type(self)):
-            return self.r == other.r and self.c == other.c
-        else:
-            raise Exception(
-                f'Cannot compare {type(self)} with {type(other)} objects')
-
-    def move(self, i):
-        """0: up, 1: down, 2: left, 3: right"""
-        if i == 0:
-            self.up()
-        elif i == 1:
-            self.down()
-        elif i == 2:
-            self.left()
-        else:
-            self.right()
-
-    def get_tuple(self):
-        return (self.r, self.c)
-
-    def __repr__(self):
-        return f'Position(r={self.r}, c={self.c})'
-
-    def __str__(self):
-        return f'({self.r}, {self.c})'
+            print(f'| {lr:4} | {df:4} | {round(avg_iterations,2):9} |')
 
 
-def get_reward(pos):
-    if pos == REWARD_POS:
-        return 1
-    return 0
+def test_grid_size():
+    sizes = [(10, 10), (20, 20), (30, 30), (40, 40), (50, 50),
+             (60, 60), (70, 70), (80, 80), (90, 90), (100, 100)]
 
+    for i in sizes:
+        ql.GRID_END = i
+        ql.R_END, ql.C_END = i
+        ql.INITIAL_POS = (ql.R_END//2, ql.C_END//2)
+        ql.REWARD_POS = i
+        with Pool() as pool:
+            res = pool.map(ql.q_learning, itertools.repeat(None, 20))
+        avg_iterations = np.mean([i[1] for i in res])
 
-def update(q):
-    pass
-
-
-def get_max_action(actions):
-    """
-    Return the index of the max value in actions.
-    If there are multiple max, return a random index.
-
-    :param actions: List of actions weights
-    """
-    maxs = np.argwhere(actions == actions.max()).flatten()
-
-    return np.random.choice(maxs)
-
-import pprint
-
-def q_learning():
-    q = defaultdict(lambda: np.ones(ACTIONS) / ACTIONS)
-
-    position = Position(*INITIAL_POS)
-
-    for t in itertools.count():
-
-        xs = []
-        ys = []
-        plt.axis([0, 10, 0, 10])
-        plt.plot(xs, ys)
-        done = False
-        for i in range(MAX_ITERATIONS):
-            state = position.get_tuple()
-            action = get_max_action(q[state])
-
-            position.move(action)
-            next_state = position.get_tuple()
-
-            reward = get_reward(next_state)
-            tmp = reward + GAMMA * q[next_state].max()
-            tmp = tmp - q[state][action]
-            q[state][action] += ALPHA * tmp
-
-            xs.append(next_state[1])
-            ys.append(next_state[0])
-            plt.gca().lines[0].set_xdata(xs)
-            plt.gca().lines[0].set_ydata(ys)
-            # plt.gca().relim()
-            # plt.gca().autoscale_view()
-            plt.pause(0.00001)
-            # sys.stdout.write(f'\rT: {t} - {i}/{MAX_ITERATIONS}: Position: {next_state}')
-            # sys.stdout.flush()
-
-            if reward == 1:
-                done = True
-                break
-
-        plt.gca().clear()
-        if done:
-            # break
-            print('DONE')
-            done = False
-            pprint.pprint(q)
-            position = Position(*INITIAL_POS)
-        else:
-            position = Position(*INITIAL_POS)
-
-    plt.show()
-    return q
+        print(f'| {i[0]}x{i[1]} | {round(avg_iterations, 2):9} |')
 
 
 if __name__ == "__main__":
-    q = q_learning()
-    # print(q)
+    # q, total_iterations = q_learning()
+    # print(total_iterations)
+    # test_combinations()
+    test_grid_size()
